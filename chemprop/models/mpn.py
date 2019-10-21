@@ -79,6 +79,11 @@ class MPNEncoder(nn.Module):
                 return features_batch
 
         f_atoms, f_bonds, a2b, b2a, b2revb, a_scope, b_scope = mol_graph.get_components()
+        f_atoms = f_atoms.cuda()
+        f_bonds = f_bonds.cuda()
+        a2b = a2b.cuda()
+        b2a =  b2a.cuda()
+        b2revb = b2revb.cuda()
 
         if self.atom_messages:
             a2a = mol_graph.get_a2a()
@@ -172,8 +177,8 @@ class MPN(nn.Module):
         self.encoder = MPNEncoder(self.args, self.atom_fdim, self.bond_fdim)
 
     def forward(self,
-                batch: Union[List[str], BatchMolGraph],
-                features_batch: List[np.ndarray] = None) -> torch.FloatTensor:
+                batch,
+                features_batch)
         """
         Encodes a batch of molecular SMILES strings.
 
@@ -181,8 +186,8 @@ class MPN(nn.Module):
         :param features_batch: A list of ndarrays containing additional features.
         :return: A PyTorch tensor of shape (num_molecules, hidden_size) containing the encoding of each molecule.
         """
-        if not self.graph_input:  # if features only, batch won't even be used
-            batch = mol2graph(batch, self.args)
+        # if not self.graph_input:  # if features only, batch won't even be used
+        #     batch = mol2graph(batch, self.args)
 
         output = self.encoder.forward(batch, features_batch)
 

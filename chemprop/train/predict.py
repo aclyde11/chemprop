@@ -2,9 +2,81 @@ from typing import List
 
 import torch
 import torch.nn as nn
-from tqdm import trange
+from tqdm import tqdm
+import torch
+import torch.utils.data as datal
+import torch.nn.functional as nnF
+import torch.optim
 
+import re
+import numpy as np
 from chemprop.data import MoleculeDataset, StandardScaler
+np_str_obj_array_pattern = re.compile(r'[SaUO]')
+from torch._six import container_abcs, string_classes, int_classes
+import torch.utils.data.Dataset
+from chemprop.features.featurization import MolGraph, BatchMolGraph
+
+class MoleculeDatasetFaster(torch.utils.data.Dataset):
+    def __init__(self, d):
+        self.d= d
+
+    def __len__(self):
+        return len(self.d)
+
+    def __getitem__(self, item):
+        mol_batch = MoleculeDataset(self.d[item])
+        smiles_batch, _ = mol_batch.smiles(), mol_batch.features()
+        smiles_batch =  MolGraph(smiles_batch[0])
+
+        return smiles_batch
+
+
+def default_collate(batch):
+    r"""Puts each data field into a tensor with outer dimension batch size"""
+
+    elem = batch[0]
+    elem_type = type(elem)
+    if isinstance(elem, torch.Tensor):
+        out = None
+        if torch.utils.data.get_worker_info() is not None:
+            # If we're in a background process, concatenate directly into a
+            # shared memory tensor to avoid an extra copy
+            numel = sum([x.numel() for x in batch])
+            storage = elem.storage()._new_shared(numel)
+            out = elem.new(storage)
+        return torch.stack(batch, 0, out=out)
+    elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
+            and elem_type.__name__ != 'string_':
+        elem = batch[0]
+        if elem_type.__name__ == 'ndarray':
+            # array of string classes and object
+            if np_str_obj_array_pattern.search(elem.dtype.str) is not None:
+                raise TypeError()
+
+            return default_collate([torch.as_tensor(b) for b in batch])
+        elif elem.shape == ():  # scalars
+            return torch.as_tensor(batch)
+    elif isinstance(elem, float):
+        return torch.tensor(batch, dtype=torch.float64)
+    elif isinstance(elem, int_classes):
+        return torch.tensor(batch)
+    elif isinstance(elem, string_classes):
+        return batch
+    elif isinstance(elem, container_abcs.Mapping):
+        return {key: default_collate([d[key] for d in batch]) for key in elem}
+    elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
+        return elem_type(*(default_collate(samples) for samples in zip(*batch)))
+    elif isinstance(elem, container_abcs.Sequence):
+        transposed = zip(*batch)
+        return [default_collate(samples) for samples in transposed]
+
+    raise TypeError()
+
+def my_collate(batch):
+
+    nums, mols = list(zip(*map(lambda x : (x[:4], x[4]), batch)))
+    transposed = zip(*nums)
+    return [default_collate(samples) for samples in transposed], BatchMolGraph(mols)
 
 
 def predict(model: nn.Module,
@@ -26,26 +98,28 @@ def predict(model: nn.Module,
     preds = []
 
     num_iters, iter_step = len(data), batch_size
+    trainloader = datal.DataLoader(MoleculeDatasetFaster(data), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=10,
+                                   collate_fn=my_collate)
 
-    for i in trange(0, num_iters, iter_step):
-        # Prepare batch
-        mol_batch = MoleculeDataset(data[i:i + batch_size])
-        smiles_batch, features_batch = mol_batch.smiles(), mol_batch.features()
+    with torch.no_grad():
+        for i, mb in tqdm(enumerate(trainloader)):
+            # Prepare batch
+            mol_batch = MoleculeDataset(data[i:i + batch_size])
+            smiles_batch, features_batch = mol_batch.smiles(), mol_batch.features()
 
-        # Run model
-        batch = smiles_batch
+            # Run model
+            batch = smiles_batch
 
-        with torch.no_grad():
-            batch_preds = model(batch, features_batch)
+                batch_preds = model(batch, None)
 
-        batch_preds = batch_preds.data.cpu().numpy()
+            batch_preds = batch_preds.data.cpu().numpy()
 
-        # Inverse scale if regression
-        if scaler is not None:
-            batch_preds = scaler.inverse_transform(batch_preds)
+            # Inverse scale if regression
+            if scaler is not None:
+                batch_preds = scaler.inverse_transform(batch_preds)
 
-        # Collect vectors
-        batch_preds = batch_preds.tolist()
-        preds.extend(batch_preds)
+            # Collect vectors
+            batch_preds = batch_preds.tolist()
+            preds.extend(batch_preds)
 
     return preds
