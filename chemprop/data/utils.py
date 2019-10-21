@@ -10,7 +10,7 @@ from rdkit import Chem
 import numpy as np
 from tqdm import tqdm
 
-from .data import MoleculeDatapoint, MoleculeDataset
+from .data import MoleculeDatapoint, MoleculeDataset, MoleculeDatapointFast
 from .scaffold import log_scaffold_stats, scaffold_split
 from chemprop.features import load_features
 
@@ -188,6 +188,29 @@ def get_data_from_smiles(smiles: List[str], skip_invalid_smiles: bool = True, lo
 
     return data
 
+
+def get_data_from_smiles_fast(smiles: List[str], skip_invalid_smiles: bool = True, logger: Logger = None) -> MoleculeDataset:
+    """
+    Converts SMILES to a MoleculeDataset.
+
+    :param smiles: A list of SMILES strings.
+    :param skip_invalid_smiles: Whether to skip and filter out invalid smiles.
+    :param logger: Logger.
+    :return: A MoleculeDataset with all of the provided SMILES.
+    """
+    debug = logger.debug if logger is not None else print
+
+    data = MoleculeDataset([MoleculeDatapointFast([smile]) for smile in smiles])
+
+    # Filter out invalid SMILES
+    if skip_invalid_smiles:
+        original_data_len = len(data)
+        data = filter_invalid_smiles(data)
+
+        if len(data) < original_data_len:
+            debug(f'Warning: {original_data_len - len(data)} SMILES are invalid.')
+
+    return data
 
 def split_data(data: MoleculeDataset,
                split_type: str = 'random',
