@@ -16,7 +16,7 @@ from torch._six import container_abcs, string_classes, int_classes
 import torch.utils.data.Dataset
 from chemprop.features.featurization import MolGraph, BatchMolGraph
 
-class MoleculeDatasetFaster(torch.utils.data.Dataset):
+class MoleculeDatasetFaster(datal.Dataset):
     def __init__(self, d):
         self.d= d
 
