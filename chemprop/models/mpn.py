@@ -178,7 +178,7 @@ class MPN(nn.Module):
 
     def forward(self,
                 batch,
-                features_batch)
+                features_batch):
         """
         Encodes a batch of molecular SMILES strings.
 
