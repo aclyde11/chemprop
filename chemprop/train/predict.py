@@ -101,6 +101,7 @@ def predict(model: nn.Module,
     trainloader = datal.DataLoader(MoleculeDatasetFaster(data), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=10,
                                    collate_fn=my_collate)
 
+    preds_list = []
     with torch.no_grad():
         for i, mb in tqdm(enumerate(trainloader)):
             # Prepare batch
@@ -110,16 +111,16 @@ def predict(model: nn.Module,
             # Run model
             batch = smiles_batch
 
-                batch_preds = model(batch, None)
+            batch_preds = model(mb, None)
 
             batch_preds = batch_preds.data.cpu().numpy()
 
             # Inverse scale if regression
             if scaler is not None:
                 batch_preds = scaler.inverse_transform(batch_preds)
-
+            preds_list.append(batch_preds.flatten())
             # Collect vectors
-            batch_preds = batch_preds.tolist()
-            preds.extend(batch_preds)
 
+
+    preds = [np.concatenate(preds_list).tolist()]
     return preds
