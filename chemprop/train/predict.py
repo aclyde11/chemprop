@@ -23,7 +23,7 @@ class MoleculeDatasetFaster(datal.Dataset):
         return len(self.d)
 
     def __getitem__(self, item):
-        mol_batch = MoleculeDataset(self.d[item])
+        mol_batch = MoleculeDataset([self.d[item]])
         smiles_batch, _ = mol_batch.smiles(), mol_batch.features()
         smiles_batch =  MolGraph(smiles_batch[0])
 
