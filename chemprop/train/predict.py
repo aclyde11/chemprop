@@ -16,8 +16,9 @@ from torch._six import container_abcs, string_classes, int_classes
 from chemprop.features.featurization import MolGraph, BatchMolGraph
 
 class MoleculeDatasetFaster(datal.Dataset):
-    def __init__(self, d):
+    def __init__(self, d, args):
         self.d= d
+        self.args = args
 
     def __len__(self):
         return len(self.d)
@@ -25,7 +26,7 @@ class MoleculeDatasetFaster(datal.Dataset):
     def __getitem__(self, item):
         mol_batch = MoleculeDataset([self.d[item]])
         smiles_batch, _ = mol_batch.smiles(), mol_batch.features()
-        smiles_batch =  MolGraph(smiles_batch[0])
+        smiles_batch =  MolGraph(smiles_batch[0], args)
 
         return smiles_batch
 
@@ -81,7 +82,8 @@ def my_collate(batch):
 def predict(model: nn.Module,
             data: MoleculeDataset,
             batch_size: int,
-            scaler: StandardScaler = None) -> List[List[float]]:
+            scaler: StandardScaler = None,
+            args = None) -> List[List[float]]:
     """
     Makes predictions on a dataset using an ensemble of models.
 
@@ -97,18 +99,13 @@ def predict(model: nn.Module,
     preds = []
 
     num_iters, iter_step = len(data), batch_size
-    trainloader = datal.DataLoader(MoleculeDatasetFaster(data), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=10,
+    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=10,
                                    collate_fn=my_collate)
 
     preds_list = []
     with torch.no_grad():
         for i, mb in tqdm(enumerate(trainloader)):
-            # Prepare batch
-            mol_batch = MoleculeDataset(data[i:i + batch_size])
-            smiles_batch, features_batch = mol_batch.smiles(), mol_batch.features()
 
-            # Run model
-            batch = smiles_batch
 
             batch_preds = model(mb, None)
 
