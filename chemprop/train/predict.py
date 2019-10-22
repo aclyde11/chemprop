@@ -110,8 +110,8 @@ def predict(model: nn.Module,
             batch_preds = model(mb, None)
 
             batch_preds = batch_preds.data.cpu()
-
-            preds_list[idx] = batch_preds.flatten()
+            preds_list.append(batch_preds.flatten().numpy())
+            # preds_list[idx] = batch_preds.flatten()
 
 
     preds = [np.concatenate(preds_list.numpy()).tolist()]
