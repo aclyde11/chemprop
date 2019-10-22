@@ -97,10 +97,10 @@ def predict(model: nn.Module,
     preds = []
 
     num_iters, iter_step = len(data), batch_size
-    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=8,
+    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=16,
                                    collate_fn=get_my_collate(args))
     trainloader_index = datal.DataLoader(list(range(num_iters)), batch_size=batch_size, pin_memory=True,
-                                   shuffle=False, num_workers=1)
+                                   shuffle=False, num_workers=4)
     preds_list = torch.zeros(len(data))
     with torch.no_grad():
         for i, (mb, idx) in tqdm(enumerate(zip(trainloader, trainloader_index)), total=int(num_iters / batch_size)):
@@ -110,12 +110,8 @@ def predict(model: nn.Module,
 
             batch_preds = batch_preds.data.cpu()
 
-            # # Inverse scale if regression
-            # if scaler is not None:
-            #     batch_preds = scaler.inverse_transform(batch_preds)
             preds_list[idx] = batch_preds.flatten()
-            # Collect vectors
 
 
-    preds = [np.concatenate(preds_list).tolist()]
+    preds = [np.concatenate(preds_list.numpy()).tolist()]
     return preds
