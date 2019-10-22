@@ -26,7 +26,7 @@ class MoleculeDatasetFaster(datal.Dataset):
     def __getitem__(self, item):
         mol_batch = MoleculeDataset([self.d[item]])
         smiles_batch, _ = mol_batch.smiles(), mol_batch.features()
-        smiles_batch =  MolGraph(smiles_batch[0], args)
+        smiles_batch =  MolGraph(smiles_batch[0], self.args)
 
         return smiles_batch
 
@@ -99,7 +99,7 @@ def predict(model: nn.Module,
     preds = []
 
     num_iters, iter_step = len(data), batch_size
-    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=10,
+    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=8,
                                    collate_fn=my_collate)
 
     preds_list = []
