@@ -24,7 +24,7 @@ class MoleculeDatasetFaster(datal.Dataset):
         return len(self.d)
 
     def __getitem__(self, item):
-        smiles_batch =  MolGraph(self.smiles[item], self.args)
+        smiles_batch =  MolGraph(self.d[item], self.args)
 
         return smiles_batch
 
@@ -102,7 +102,7 @@ def predict(model: nn.Module,
 
     preds_list = []
     with torch.no_grad():
-        for i, mb in tqdm(enumerate(trainloader)):
+        for i, mb in tqdm(enumerate(trainloader), total=num_iters):
 
 
             batch_preds = model(mb, None)
