@@ -103,7 +103,7 @@ def predict(model: nn.Module,
                                    shuffle=False, num_workers=1)
     preds_list = torch.zeros(len(data))
     with torch.no_grad():
-        for i, (mb, idx) in tqdm(enumerate(zip(trainloader, trainloader_index), total=int(num_iters / batch_size)):
+        for i, (mb, idx) in tqdm(enumerate(zip(trainloader, trainloader_index)), total=int(num_iters / batch_size)):
 
 
             batch_preds = model(mb, None)
