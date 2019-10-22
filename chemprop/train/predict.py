@@ -24,9 +24,7 @@ class MoleculeDatasetFaster(datal.Dataset):
         return len(self.d)
 
     def __getitem__(self, item):
-        mol_batch = MoleculeDataset([self.d[item]])
-        smiles_batch, _ = mol_batch.smiles(), mol_batch.features()
-        smiles_batch =  MolGraph(smiles_batch[0], self.args)
+        smiles_batch =  MolGraph(self.smiles[item], self.args)
 
         return smiles_batch
 
@@ -80,7 +78,7 @@ def get_my_collate(args):
 
 
 def predict(model: nn.Module,
-            data: MoleculeDataset,
+            data,
             batch_size: int,
             scaler: StandardScaler = None,
             args = None) -> List[List[float]]:
