@@ -103,7 +103,7 @@ def predict(model: nn.Module,
                                    shuffle=False, num_workers=1)
     preds_list = torch.zeros(len(data))
     with torch.no_grad():
-        for i, mb in tqdm(enumerate(trainloader), total=int(num_iters / batch_size)):
+        for i, (mb, idx) in tqdm(enumerate(zip(trainloader, trainloader_index), total=int(num_iters / batch_size)):
 
 
             batch_preds = model(mb, None)
@@ -113,7 +113,7 @@ def predict(model: nn.Module,
             # # Inverse scale if regression
             # if scaler is not None:
             #     batch_preds = scaler.inverse_transform(batch_preds)
-            preds_list[next(trainloader_index)] = batch_preds.flatten()
+            preds_list[idx] = batch_preds.flatten()
             # Collect vectors
 
 
