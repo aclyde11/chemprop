@@ -115,5 +115,5 @@ def predict(model: nn.Module,
             # preds_list[idx] = batch_preds.flatten()
 
 
-    preds = [np.concatenate(preds_list.numpy()).tolist()]
+    preds = [np.concatenate(preds_list).tolist()]
     return preds
