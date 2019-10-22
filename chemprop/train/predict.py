@@ -102,7 +102,8 @@ def predict(model: nn.Module,
     trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=32,
                                    collate_fn=get_my_collate(args))
 
-    preds_list = torch.zeros(len(data))
+    # preds_list = torch.zeros(len(data))
+    preds_list = []
     with torch.no_grad():
         for i, (idx, mb) in tqdm(enumerate(trainloader), total=int(num_iters / batch_size)):
 
