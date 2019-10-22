@@ -74,9 +74,7 @@ def default_collate(batch):
 
 def my_collate(batch):
 
-    nums, mols = list(zip(*map(lambda x : (x[:4], x[4]), batch)))
-    transposed = zip(*nums)
-    return [default_collate(samples) for samples in transposed], BatchMolGraph(mols)
+    return BatchMolGraph(batch)
 
 
 def predict(model: nn.Module,
@@ -99,7 +97,7 @@ def predict(model: nn.Module,
     preds = []
 
     num_iters, iter_step = len(data), batch_size
-    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=True, num_workers=8,
+    trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=8,
                                    collate_fn=my_collate)
 
     preds_list = []
