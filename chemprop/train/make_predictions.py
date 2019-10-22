@@ -27,6 +27,7 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
     scaler, features_scaler = load_scalers(args.checkpoint_paths[0])
     train_args = load_args(args.checkpoint_paths[0])
     data = smiles
+    assert (smiles is not None)
     # Update args with training arguments
     for key, value in vars(train_args).items():
         if not hasattr(args, key):
