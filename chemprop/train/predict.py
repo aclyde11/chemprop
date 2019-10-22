@@ -75,7 +75,7 @@ def default_collate(batch):
 def get_my_collate(args):
     def my_collate(batch):
 
-        return BatchMolGraph(batch)
+        return BatchMolGraph(batch, args)
     return my_collate
 
 
