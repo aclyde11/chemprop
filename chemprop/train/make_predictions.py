@@ -57,25 +57,25 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
     #     test_data.normalize_features(features_scaler)
 
     # Predict with each model individually and sum predictions
-    if args.dataset_type == 'multiclass':
-        sum_preds = np.zeros((len(smiles), args.num_tasks, args.multiclass_num_classes))
-    else:
-        sum_preds = np.zeros((len(smiles), args.num_tasks))
+    # if args.dataset_type == 'multiclass':
+    #     sum_preds = np.zeros((len(smiles), args.num_tasks, args.multiclass_num_classes))
+    # else:
+    sum_preds = np.zeros((len(smiles), args.num_tasks))
     print(f'Predicting with an ensemble of {len(args.checkpoint_paths)} models')
     for checkpoint_path in tqdm(args.checkpoint_paths, total=len(args.checkpoint_paths)):
         # Load model
         model = load_checkpoint(checkpoint_path, cuda=args.cuda)
-        model_preds = predict(
+        avg_preds = predict(
             model=model,
             data=smiles,
             batch_size=args.batch_size,
             scaler=scaler, args=args
         )
-        sum_preds += np.array(model_preds)
+        # avg_preds += np.array(model_preds)
 
     # Ensemble predictions
-    avg_preds = sum_preds / len(args.checkpoint_paths)
-    avg_preds = avg_preds.tolist()
+    # avg_preds = sum_preds / len(args.checkpoint_paths)
+    # avg_preds = avg_preds.tolist()
 
     # Save predictions
     assert len(smiles) == len(avg_preds)
