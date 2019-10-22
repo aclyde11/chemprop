@@ -18,6 +18,7 @@ from chemprop.features.featurization import MolGraph, BatchMolGraph
 class MoleculeDatasetFaster(datal.Dataset):
     def __init__(self, d, args):
         self.d= d
+        self.i = list(range(len(d)))
         self.args = args
 
     def __len__(self):
@@ -26,7 +27,7 @@ class MoleculeDatasetFaster(datal.Dataset):
     def __getitem__(self, item):
         smiles_batch =  MolGraph(self.d[item], self.args)
 
-        return smiles_batch
+        return torch.tensor(self.i[item]).long(), smiles_batch
 
 
 def default_collate(batch):
@@ -72,8 +73,10 @@ def default_collate(batch):
 
 def get_my_collate(args):
     def my_collate(batch):
+        nums, mols = list(zip(*map(lambda x: (x[0], x[1]), batch)))
+        transposed = zip(*nums)
+        return [default_collate(samples) for samples in transposed], BatchMolGraph(mols, args)
 
-        return BatchMolGraph(batch, args)
     return my_collate
 
 
@@ -99,11 +102,10 @@ def predict(model: nn.Module,
     num_iters, iter_step = len(data), batch_size
     trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=16,
                                    collate_fn=get_my_collate(args))
-    trainloader_index = datal.DataLoader(list(range(num_iters)), batch_size=batch_size, pin_memory=True,
-                                   shuffle=False, num_workers=4)
+
     preds_list = torch.zeros(len(data))
     with torch.no_grad():
-        for i, (mb, idx) in tqdm(enumerate(zip(trainloader, trainloader_index)), total=int(num_iters / batch_size)):
+        for i, (idx, mb) in tqdm(enumerate(trainloader), total=int(num_iters / batch_size)):
 
 
             batch_preds = model(mb, None)
