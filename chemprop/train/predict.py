@@ -74,8 +74,7 @@ def default_collate(batch):
 def get_my_collate(args):
     def my_collate(batch):
         nums, mols = list(zip(*map(lambda x: (x[0], x[1]), batch)))
-        transposed = zip(*nums)
-        return [default_collate(samples) for samples in transposed], BatchMolGraph(mols, args)
+        return default_collate(nums), BatchMolGraph(mols, args)
 
     return my_collate
 
