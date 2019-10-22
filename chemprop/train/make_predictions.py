@@ -81,6 +81,7 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
     # avg_preds = avg_preds.tolist()
 
     # Save predictions
+    print(len(smiles), len(avg_preds))
     assert len(smiles) == len(avg_preds)
     print(f'Saving predictions to {args.preds_path}')
 
