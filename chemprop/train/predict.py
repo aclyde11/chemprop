@@ -95,7 +95,6 @@ def predict(model: nn.Module,
     model.eval()
 
     preds = []
-    assert(scaler is None)
 
     num_iters, iter_step = len(data), batch_size
     trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=8,
