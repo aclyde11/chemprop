@@ -60,7 +60,7 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
     # if args.dataset_type == 'multiclass':
     #     sum_preds = np.zeros((len(smiles), args.num_tasks, args.multiclass_num_classes))
     # else:
-    sum_preds = np.zeros((len(smiles), args.num_tasks))
+    # sum_preds = np.zeros((len(smiles), args.num_tasks))
     print(f'Predicting with an ensemble of {len(args.checkpoint_paths)} models')
     for checkpoint_path in tqdm(args.checkpoint_paths, total=len(args.checkpoint_paths)):
         # Load model
