@@ -72,9 +72,11 @@ def default_collate(batch):
 
     raise TypeError()
 
-def my_collate(batch):
+def get_my_collate(args):
+    def my_collate(batch):
 
-    return BatchMolGraph(batch)
+        return BatchMolGraph(batch)
+    return my_collate
 
 
 def predict(model: nn.Module,
@@ -98,7 +100,7 @@ def predict(model: nn.Module,
 
     num_iters, iter_step = len(data), batch_size
     trainloader = datal.DataLoader(MoleculeDatasetFaster(data,args), batch_size=batch_size, pin_memory=True, shuffle=False, num_workers=8,
-                                   collate_fn=my_collate)
+                                   collate_fn=get_my_collate(args))
 
     preds_list = []
     with torch.no_grad():
