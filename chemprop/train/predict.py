@@ -116,4 +116,5 @@ def predict(model: nn.Module,
 
 
     preds = np.concatenate(preds_list).tolist()
+    preds = list(map(lambda x: [x], preds))
     return preds
